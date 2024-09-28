@@ -86,13 +86,13 @@ picam2.start()
 camera_label = tk.Label(root, bg="black")
 camera_label.pack(expand=True, fill=tk.BOTH)
 
-# Rode knop om een foto te maken, zonder tekst
-button_frame = tk.Frame(root)
-button_frame.pack(pady=10, side=tk.BOTTOM)
+# Frame voor de overlay (doorzichtig, zodat de knop als overlay verschijnt)
+overlay_frame = tk.Frame(root, bg="", width=window_width, height=window_height)
+overlay_frame.place(x=0, y=window_height-100)  # Plaats de knop net boven de onderkant
 
-button_height = 100  # Schat een hoogte voor de knop om ruimte te reserveren
-take_photo_button = tk.Button(button_frame, command=take_photo, bg="red", width=10, height=5)  # Vierkant, zonder tekst
-take_photo_button.pack()
+# Witte knop om een foto te maken, zonder tekst, onderaan in het venster
+take_photo_button = tk.Button(overlay_frame, command=take_photo, bg="white", width=10, height=5)  # Vierkant, wit
+take_photo_button.pack(anchor=tk.S, pady=20)  # Plaats het onderaan het scherm
 
 # Start de camera en update het beeld in de GUI
 update_frame()
