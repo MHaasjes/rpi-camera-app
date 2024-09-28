@@ -23,6 +23,17 @@ def take_photo():
     except Exception as e:
         messagebox.showerror("Fout", f"Kon geen foto maken: {e}")
 
+# Functie om de grootste resolutie te vinden
+def get_max_resolution(sensor_modes):
+    max_width = 0
+    max_height = 0
+    for mode in sensor_modes:
+        width, height = mode['size']
+        if width * height > max_width * max_height:  # Vergelijk op basis van het aantal pixels
+            max_width = width
+            max_height = height
+    return (max_width, max_height)
+
 # Functie om het camerabeeld bij te werken in de GUI
 def update_frame():
     frame = picam2.capture_array()
@@ -73,9 +84,9 @@ root.geometry(f"{window_width}x{window_height}")
 # Initialiseer de camera
 picam2 = Picamera2()
 
-# Haal de maximale resolutie van de camera op
+# Haal de beschikbare sensor modi op en vind de maximale resolutie
 camera_info = picam2.sensor_modes
-max_resolution = camera_info[0]['size']  # De maximale resolutie wordt opgehaald uit de beschikbare modi
+max_resolution = get_max_resolution(camera_info)  # Gebruik de functie om de maximale resolutie te vinden
 
 # Configureer de camera voor maximale resolutie
 config = picam2.create_preview_configuration(main={"size": max_resolution})
