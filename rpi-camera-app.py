@@ -30,7 +30,7 @@ def update_frame():
     # Schaal de afbeelding met behoud van de beeldverhouding
     frame_image = Image.fromarray(frame)
     frame_ratio = frame_image.width / frame_image.height
-    display_ratio = window_width / (window_height - 40)  # Verhouding zonder de zwarte balk
+    display_ratio = window_width / (window_height - 60)  # Verhouding zonder de zwarte balk
 
     if frame_ratio > display_ratio:
         # Afbeelding is breder dan het scherm, voeg zwarte balken boven en onder toe
@@ -38,7 +38,7 @@ def update_frame():
         new_height = int(window_width / frame_ratio)
     else:
         # Afbeelding is hoger dan het scherm, voeg zwarte balken links en rechts toe
-        new_height = window_height - 40  # Rekening houden met de balk
+        new_height = window_height - 60  # Rekening houden met de balk
         new_width = int(new_height * frame_ratio)
 
     frame_image = frame_image.resize((new_width, new_height), Image.ANTIALIAS)
@@ -46,9 +46,9 @@ def update_frame():
     # Maak een zwarte achtergrond om de balken toe te voegen
     frame_image_with_borders = ImageOps.expand(frame_image, (
         (window_width - new_width) // 2,  # Zwarte balk links
-        (window_height - 40 - new_height) // 2,  # Zwarte balk boven, zonder de onderste balk
+        (window_height - 60 - new_height) // 2,  # Zwarte balk boven, zonder de onderste balk
         (window_width - new_width) // 2,  # Zwarte balk rechts
-        (window_height - 40 - new_height) // 2  # Zwarte balk onder, zonder de onderste balk
+        (window_height - 60 - new_height) // 2  # Zwarte balk onder, zonder de onderste balk
     ), fill='black')
 
     frame_image_tk = ImageTk.PhotoImage(frame_image_with_borders)
@@ -86,13 +86,22 @@ picam2.start()
 camera_label = tk.Label(root, bg="black")
 camera_label.pack(expand=True, fill=tk.BOTH)
 
-# Zwarte balk onderaan voor de knop (40 pixels hoog)
-button_frame = tk.Frame(root, bg="black", height=40)
+# Zwarte balk onderaan voor de knop (60 pixels hoog)
+button_frame = tk.Frame(root, bg="black", height=60)
 button_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
-# Witte knop in de zwarte balk om een foto te maken
-take_photo_button = tk.Button(button_frame, command=take_photo, bg="white", width=10, height=1)  # Vierkant en wit
-take_photo_button.pack(pady=5)  # Zorg dat de knop netjes in de zwarte balk wordt weergegeven
+# Witte knop (cirkelvormig) in de zwarte balk om een foto te maken
+take_photo_button = tk.Button(button_frame, command=take_photo, bg="white", width=3, height=1)
+take_photo_button.pack(pady=10)  # Zorg dat de knop netjes in de zwarte balk wordt weergegeven
+
+# Maak de knop cirkelvormig
+take_photo_button.configure(height=2)  # Verander de hoogte naar 2 voor cirkelvorm
+take_photo_button.bind('<Configure>', lambda e: take_photo_button.config(width=40, height=40))
+
+# Label voor de cameraresolutie
+resolution_label = tk.Label(root, text=f"Resolutie: {max_resolution[0]}x{max_resolution[1]}", 
+                             bg="black", fg="white", font=("Helvetica", 16))
+resolution_label.place(x=10, y=10)  # Plaats het label in de bovenhoek
 
 # Start de camera en update het beeld in de GUI
 update_frame()
