@@ -20,18 +20,15 @@ def take_photo():
     except Exception as e:
         messagebox.showerror("Fout", f"Kon geen foto maken: {e}")
 
-# Functie om het camerabeeld bij te werken in de GUI en beeldvullend te maken
+# Functie om het camerabeeld bij te werken in de GUI
 def update_frame():
     frame = picam2.capture_array()
-    
-    # Schaal de afbeelding zodat het het hele scherm vult zonder de beeldverhouding te verstoren
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
+
+    # Schaal de afbeelding zodat het binnen het venster past zonder de beeldverhouding te verstoren
     frame_image = Image.fromarray(frame)
-    
-    frame_image = frame_image.resize((screen_width, screen_height), Image.ANTIALIAS)
+    frame_image = frame_image.resize((window_width, window_height), Image.ANTIALIAS)
     frame_image_tk = ImageTk.PhotoImage(frame_image)
-    
+
     camera_label.config(image=frame_image_tk)
     camera_label.image = frame_image_tk
     camera_label.after(10, update_frame)
@@ -40,8 +37,14 @@ def update_frame():
 root = tk.Tk()
 root.title("Raspberry Pi Camera App")
 
-# Maak het venster beeldvullend
-root.attributes("-fullscreen", True)
+# Haal de schermresolutie op
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+
+# Stel het venster in om bijna schermvullend te zijn (ruimte laten voor de taakbalk en menu's)
+window_width = screen_width
+window_height = screen_height - 80  # Houd wat ruimte over voor de taakbalk of het menu
+root.geometry(f"{window_width}x{window_height}")
 
 # Initialiseer de camera
 picam2 = Picamera2()
@@ -55,7 +58,7 @@ config = picam2.create_preview_configuration(main={"size": max_resolution})
 picam2.configure(config)
 picam2.start()
 
-# Camerabeeld label (dat beeldvullend wordt)
+# Camerabeeld label
 camera_label = tk.Label(root)
 camera_label.pack(expand=True)
 
@@ -65,13 +68,6 @@ button_frame.pack(pady=20)
 
 take_photo_button = tk.Button(button_frame, command=take_photo, bg="red", width=10, height=5)  # Vierkant, zonder tekst
 take_photo_button.pack()
-
-# Sluit het venster bij het drukken op de Escape-toets
-def close_fullscreen(event=None):
-    root.attributes("-fullscreen", False)
-    root.quit()
-
-root.bind("<Escape>", close_fullscreen)
 
 # Start de camera en update het beeld in de GUI
 update_frame()
