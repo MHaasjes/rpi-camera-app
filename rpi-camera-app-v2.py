@@ -70,14 +70,14 @@ def switch_icons():
 
     if current_mode == "photo":
         # Wissel naar videomodus
-        button_canvas.itemconfig(button_symbol, text="▯◄", font=("Helvetica", 16))  # Zet ▯◄ in de cirkel
+        button_canvas.itemconfig(button_symbol, text="▯◄", font=("Helvetica", 10))  # Zet ▯◄ in de cirkel
         video_label.config(text="[O°]", font=("Helvetica", 10), fg="white")  # Zet [O°] rechts van de cirkel
         current_mode = "video"
         button_canvas.bind("<Button-1>", lambda event: toggle_video_recording())  # Bind video-opname functie
     else:
         # Wissel naar fotomodus
         button_canvas.itemconfig(button_symbol, text="[O°]", font=("Helvetica", 10))  # Zet [O°] in de cirkel
-        video_label.config(text="▯◄", font=("Helvetica", 16), fg="white")  # Zet ▯◄ rechts van de cirkel
+        video_label.config(text="▯◄", font=("Helvetica", 10), fg="white")  # Zet ▯◄ rechts van de cirkel
         current_mode = "photo"
         button_canvas.bind("<Button-1>", lambda event: take_photo())  # Bind foto-opname functie
 
@@ -176,8 +176,8 @@ button_symbol = button_canvas.create_text(30, 30, text="[O°]", fill="black", fo
 button_canvas.bind("<Button-1>", lambda event: take_photo())
 
 # Plaats het symbool '▯◄' rechts van de cirkel (25 pixels naar rechts)
-video_label = tk.Label(button_frame, text="▯◄", bg="black", fg="white", font=("Helvetica", 16))
-video_label.pack(side=tk.LEFT, padx=(25, 0))
+video_label = tk.Label(button_frame, text="▯◄", bg="black", fg="white", font=("Helvetica", 10))
+video_label.pack(side=tk.LEFT, padx=(10, 0))  # Verminder de ruimte om het zichtbaar te maken
 
 # Voeg een klik-event toe aan '▯◄' om de iconen te wisselen
 video_label.bind("<Button-1>", lambda event: switch_icons())
