@@ -164,7 +164,7 @@ button_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
 # Maak een canvas voor de cirkelvormige knop
 button_canvas = tk.Canvas(button_frame, bg="black", width=60, height=60, highlightthickness=0)
-button_canvas.pack(pady=(5, 0))  # Verhoog de positie met 15 pixels
+button_canvas.pack(side=tk.LEFT, padx=(10, 0))  # Zorg ervoor dat het canvas goed gepositioneerd is
 
 # Teken een cirkel op het canvas
 circle = button_canvas.create_oval(10, 10, 50, 50, fill="white", outline="")
@@ -177,7 +177,7 @@ button_canvas.bind("<Button-1>", lambda event: take_photo())
 
 # Plaats het symbool '▯◄' rechts van de cirkel (25 pixels naar rechts)
 video_label = tk.Label(button_frame, text="▯◄", bg="black", fg="white", font=("Helvetica", 10))
-video_label.pack(side=tk.LEFT, padx=(10, 0))  # Verminder de ruimte om het zichtbaar te maken
+video_label.pack(side=tk.LEFT, padx=(10, 10))  # Zorg ervoor dat er voldoende ruimte is voor zichtbaarheid
 
 # Voeg een klik-event toe aan '▯◄' om de iconen te wisselen
 video_label.bind("<Button-1>", lambda event: switch_icons())
