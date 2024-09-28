@@ -9,6 +9,12 @@ import time
 # Functie om foto te maken
 def take_photo():
     try:
+        # Stel de maximale resolutie in voor het maken van de foto
+        picam2.stop()  # Stop de preview om de configuratie te kunnen wijzigen
+        config_max = picam2.create_still_configuration(main={"size": max_resolution})  # Configureer voor maximale resolutie
+        picam2.configure(config_max)
+        picam2.start()
+
         # Maak een foto met de camera
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         user = os.getenv("USER")  # Haal de ingelogde gebruiker op
@@ -20,6 +26,12 @@ def take_photo():
         root.update()
         time.sleep(0.5)  # Wacht een halve seconde
         camera_label.config(bg="black")  # Zet achtergrond terug naar zwart
+        
+        # Herstart de camera preview
+        picam2.stop()  # Stop de foto-configuratie
+        picam2.configure(config)  # Herconfigureer naar de oorspronkelijke preview-configuratie
+        picam2.start()
+
     except Exception as e:
         messagebox.showerror("Fout", f"Kon geen foto maken: {e}")
 
@@ -73,14 +85,17 @@ root.geometry(f"{window_width}x{window_height}")
 # Initialiseer de camera
 picam2 = Picamera2()
 
-# Haal de beschikbare sensor modi op en pak de eerste resolutie (voor eenvoud)
+# Haal de beschikbare sensor modi op en pak de eerste resolutie voor preview
 camera_info = picam2.sensor_modes
-max_resolution = camera_info[0]['size']  # Gebruik de eerste resolutie
+preview_resolution = camera_info[0]['size']  # Gebruik de eerste resolutie voor de preview
 
-# Configureer de camera voor deze resolutie
-config = picam2.create_preview_configuration(main={"size": max_resolution})
+# Configureer de camera voor de preview-resolutie
+config = picam2.create_preview_configuration(main={"size": preview_resolution})
 picam2.configure(config)
 picam2.start()
+
+# Haal de maximale resolutie voor het maken van foto's
+max_resolution = max(camera_info, key=lambda mode: mode['size'][0] * mode['size'][1])['size']  # Vind de maximale resolutie
 
 # Camerabeeld label
 camera_label = tk.Label(root, bg="black")
@@ -101,7 +116,7 @@ circle = button_canvas.create_oval(10, 10, 50, 50, fill="white", outline="")
 button_canvas.bind("<Button-1>", lambda event: take_photo())
 
 # Label voor de cameraresolutie
-resolution_label = tk.Label(root, text=f"Resolutie: {max_resolution[0]}x{max_resolution[1]}",
+resolution_label = tk.Label(root, text=f"Resolutie (preview): {preview_resolution[0]}x{preview_resolution[1]}",
                              bg="black", fg="white", font=("Helvetica", 16))
 resolution_label.place(x=10, y=10)  # Plaats het label in de bovenhoek
 
