@@ -30,7 +30,7 @@ def update_frame():
     # Schaal de afbeelding met behoud van de beeldverhouding
     frame_image = Image.fromarray(frame)
     frame_ratio = frame_image.width / frame_image.height
-    display_ratio = window_width / window_height
+    display_ratio = window_width / (window_height - 40)  # Verhouding zonder de witte balk
 
     if frame_ratio > display_ratio:
         # Afbeelding is breder dan het scherm, voeg zwarte balken boven en onder toe
@@ -38,17 +38,17 @@ def update_frame():
         new_height = int(window_width / frame_ratio)
     else:
         # Afbeelding is hoger dan het scherm, voeg zwarte balken links en rechts toe
-        new_height = window_height
-        new_width = int(window_height * frame_ratio)
+        new_height = window_height - 40  # Rekening houden met de balk
+        new_width = int(new_height * frame_ratio)
 
     frame_image = frame_image.resize((new_width, new_height), Image.ANTIALIAS)
 
     # Maak een zwarte achtergrond om de balken toe te voegen
     frame_image_with_borders = ImageOps.expand(frame_image, (
         (window_width - new_width) // 2,  # Zwarte balk links
-        (window_height - new_height) // 2,  # Zwarte balk boven
+        (window_height - 40 - new_height) // 2,  # Zwarte balk boven, zonder de witte balk
         (window_width - new_width) // 2,  # Zwarte balk rechts
-        (window_height - new_height) // 2  # Zwarte balk onder
+        (window_height - 40 - new_height) // 2  # Zwarte balk onder, zonder de witte balk
     ), fill='black')
 
     frame_image_tk = ImageTk.PhotoImage(frame_image_with_borders)
@@ -86,13 +86,13 @@ picam2.start()
 camera_label = tk.Label(root, bg="black")
 camera_label.pack(expand=True, fill=tk.BOTH)
 
-# Frame voor de overlay (doorzichtig, zodat de knop als overlay verschijnt)
-overlay_frame = tk.Frame(root, bg="", width=window_width, height=window_height)
-overlay_frame.place(x=0, y=window_height-100)  # Plaats de knop net boven de onderkant
+# Witte balk onderaan voor de knop (40 pixels hoog)
+button_frame = tk.Frame(root, bg="white", height=40)
+button_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
-# Witte knop om een foto te maken, zonder tekst, onderaan in het venster
-take_photo_button = tk.Button(overlay_frame, command=take_photo, bg="white", width=10, height=5)  # Vierkant, wit
-take_photo_button.pack(anchor=tk.S, pady=20)  # Plaats het onderaan het scherm
+# Rode knop in de witte balk om een foto te maken
+take_photo_button = tk.Button(button_frame, command=take_photo, bg="red", width=10, height=1)  # Vierkant
+take_photo_button.pack(pady=5)  # Zorg dat de knop netjes in de witte balk wordt weergegeven
 
 # Start de camera en update het beeld in de GUI
 update_frame()
