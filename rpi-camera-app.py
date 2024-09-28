@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 from datetime import datetime
 import os
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageOps
 from picamera2 import Picamera2
 import time
 
@@ -13,10 +13,13 @@ def take_photo():
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         user = os.getenv("USER")  # Haal de ingelogde gebruiker op
         save_path = f"/home/{user}/Pictures/photo_{timestamp}.jpg"
-
         picam2.capture_file(save_path)
-        messagebox.showinfo("Foto", f"Foto opgeslagen als: {save_path}")
 
+        # Laat het scherm even wit flitsen om aan te geven dat er een foto is gemaakt
+        camera_label.config(bg="white")
+        root.update()
+        time.sleep(0.5)  # Wacht een halve seconde
+        camera_label.config(bg="black")  # Zet achtergrond terug naar zwart
     except Exception as e:
         messagebox.showerror("Fout", f"Kon geen foto maken: {e}")
 
@@ -24,10 +27,31 @@ def take_photo():
 def update_frame():
     frame = picam2.capture_array()
 
-    # Schaal de afbeelding zodat het binnen het venster past zonder de beeldverhouding te verstoren
+    # Schaal de afbeelding met behoud van de beeldverhouding
     frame_image = Image.fromarray(frame)
-    frame_image = frame_image.resize((window_width, window_height - button_height), Image.ANTIALIAS)
-    frame_image_tk = ImageTk.PhotoImage(frame_image)
+    frame_ratio = frame_image.width / frame_image.height
+    display_ratio = window_width / window_height
+
+    if frame_ratio > display_ratio:
+        # Afbeelding is breder dan het scherm, voeg zwarte balken boven en onder toe
+        new_width = window_width
+        new_height = int(window_width / frame_ratio)
+    else:
+        # Afbeelding is hoger dan het scherm, voeg zwarte balken links en rechts toe
+        new_height = window_height
+        new_width = int(window_height * frame_ratio)
+
+    frame_image = frame_image.resize((new_width, new_height), Image.ANTIALIAS)
+
+    # Maak een zwarte achtergrond om de balken toe te voegen
+    frame_image_with_borders = ImageOps.expand(frame_image, (
+        (window_width - new_width) // 2,  # Zwarte balk links
+        (window_height - new_height) // 2,  # Zwarte balk boven
+        (window_width - new_width) // 2,  # Zwarte balk rechts
+        (window_height - new_height) // 2  # Zwarte balk onder
+    ), fill='black')
+
+    frame_image_tk = ImageTk.PhotoImage(frame_image_with_borders)
 
     camera_label.config(image=frame_image_tk)
     camera_label.image = frame_image_tk
@@ -59,7 +83,7 @@ picam2.configure(config)
 picam2.start()
 
 # Camerabeeld label
-camera_label = tk.Label(root)
+camera_label = tk.Label(root, bg="black")
 camera_label.pack(expand=True, fill=tk.BOTH)
 
 # Rode knop om een foto te maken, zonder tekst
