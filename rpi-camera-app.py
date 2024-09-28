@@ -69,9 +69,20 @@ def update_frame():
     camera_label.image = frame_image_tk
     camera_label.after(10, update_frame)
 
+# Functie om de applicatie netjes af te sluiten
+def on_closing():
+    try:
+        picam2.stop()  # Stop de camera als deze actief is
+    except Exception as e:
+        print(f"Fout bij het stoppen van de camera: {e}")
+    root.destroy()  # Sluit de GUI af
+
 # Start de GUI
 root = tk.Tk()
 root.title("Raspberry Pi Camera App")
+
+# Voeg een protocol toe om de sluitfunctie te verbinden met de on_closing functie
+root.protocol("WM_DELETE_WINDOW", on_closing)
 
 # Haal de schermresolutie op
 screen_width = root.winfo_screenwidth()
