@@ -20,17 +20,28 @@ def take_photo():
     except Exception as e:
         messagebox.showerror("Fout", f"Kon geen foto maken: {e}")
 
-# Functie om het camerabeeld bij te werken in de GUI
+# Functie om het camerabeeld bij te werken in de GUI en beeldvullend te maken
 def update_frame():
     frame = picam2.capture_array()
-    frame_image = ImageTk.PhotoImage(Image.fromarray(frame))
-    camera_label.config(image=frame_image)
-    camera_label.image = frame_image
+    
+    # Schaal de afbeelding zodat het het hele scherm vult zonder de beeldverhouding te verstoren
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    frame_image = Image.fromarray(frame)
+    
+    frame_image = frame_image.resize((screen_width, screen_height), Image.ANTIALIAS)
+    frame_image_tk = ImageTk.PhotoImage(frame_image)
+    
+    camera_label.config(image=frame_image_tk)
+    camera_label.image = frame_image_tk
     camera_label.after(10, update_frame)
 
 # Start de GUI
 root = tk.Tk()
 root.title("Raspberry Pi Camera App")
+
+# Maak het venster beeldvullend
+root.attributes("-fullscreen", True)
 
 # Initialiseer de camera
 picam2 = Picamera2()
@@ -44,19 +55,23 @@ config = picam2.create_preview_configuration(main={"size": max_resolution})
 picam2.configure(config)
 picam2.start()
 
-# Venstergrootte aanpassen voor een grotere preview
-root.geometry(f"{max_resolution[0]}x{max_resolution[1]+100}")  # 100 pixels extra voor de knopruimte
-
-# Camerabeeld label
+# Camerabeeld label (dat beeldvullend wordt)
 camera_label = tk.Label(root)
-camera_label.pack()
+camera_label.pack(expand=True)
 
-# Rode knop om een foto te maken zonder tekst en in een vierkant formaat
+# Vierkante rode knop om een foto te maken, zonder tekst
 button_frame = tk.Frame(root)
 button_frame.pack(pady=20)
 
 take_photo_button = tk.Button(button_frame, command=take_photo, bg="red", width=10, height=5)  # Vierkant, zonder tekst
 take_photo_button.pack()
+
+# Sluit het venster bij het drukken op de Escape-toets
+def close_fullscreen(event=None):
+    root.attributes("-fullscreen", False)
+    root.quit()
+
+root.bind("<Escape>", close_fullscreen)
 
 # Start de camera en update het beeld in de GUI
 update_frame()
