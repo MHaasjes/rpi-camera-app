@@ -30,7 +30,7 @@ def update_frame():
     # Schaal de afbeelding met behoud van de beeldverhouding
     frame_image = Image.fromarray(frame)
     frame_ratio = frame_image.width / frame_image.height
-    display_ratio = window_width / (window_height - 40)  # Verhouding zonder de witte balk
+    display_ratio = window_width / (window_height - 40)  # Verhouding zonder de zwarte balk
 
     if frame_ratio > display_ratio:
         # Afbeelding is breder dan het scherm, voeg zwarte balken boven en onder toe
@@ -46,9 +46,9 @@ def update_frame():
     # Maak een zwarte achtergrond om de balken toe te voegen
     frame_image_with_borders = ImageOps.expand(frame_image, (
         (window_width - new_width) // 2,  # Zwarte balk links
-        (window_height - 40 - new_height) // 2,  # Zwarte balk boven, zonder de witte balk
+        (window_height - 40 - new_height) // 2,  # Zwarte balk boven, zonder de onderste balk
         (window_width - new_width) // 2,  # Zwarte balk rechts
-        (window_height - 40 - new_height) // 2  # Zwarte balk onder, zonder de witte balk
+        (window_height - 40 - new_height) // 2  # Zwarte balk onder, zonder de onderste balk
     ), fill='black')
 
     frame_image_tk = ImageTk.PhotoImage(frame_image_with_borders)
@@ -86,13 +86,13 @@ picam2.start()
 camera_label = tk.Label(root, bg="black")
 camera_label.pack(expand=True, fill=tk.BOTH)
 
-# Witte balk onderaan voor de knop (40 pixels hoog)
-button_frame = tk.Frame(root, bg="white", height=40)
+# Zwarte balk onderaan voor de knop (40 pixels hoog)
+button_frame = tk.Frame(root, bg="black", height=40)
 button_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
-# Rode knop in de witte balk om een foto te maken
-take_photo_button = tk.Button(button_frame, command=take_photo, bg="red", width=10, height=1)  # Vierkant
-take_photo_button.pack(pady=5)  # Zorg dat de knop netjes in de witte balk wordt weergegeven
+# Witte knop in de zwarte balk om een foto te maken
+take_photo_button = tk.Button(button_frame, command=take_photo, bg="white", width=10, height=1)  # Vierkant en wit
+take_photo_button.pack(pady=5)  # Zorg dat de knop netjes in de zwarte balk wordt weergegeven
 
 # Start de camera en update het beeld in de GUI
 update_frame()
