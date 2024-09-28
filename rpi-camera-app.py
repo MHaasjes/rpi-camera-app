@@ -115,10 +115,14 @@ circle = button_canvas.create_oval(10, 10, 50, 50, fill="white", outline="")
 # Voeg een klik-event toe aan de cirkel
 button_canvas.bind("<Button-1>", lambda event: take_photo())
 
-# Label voor de cameraresolutie
+# Labels voor de cameraresoluties
 resolution_label = tk.Label(root, text=f"Resolutie (preview): {preview_resolution[0]}x{preview_resolution[1]}",
-                             bg="black", fg="white", font=("Helvetica", 16))
+                             bg="black", fg="white", font=("Helvetica", 10))
 resolution_label.place(x=10, y=10)  # Plaats het label in de bovenhoek
+
+photo_resolution_label = tk.Label(root, text=f"Resolutie (foto): {max_resolution[0]}x{max_resolution[1]}",
+                                   bg="black", fg="white", font=("Helvetica", 10))
+photo_resolution_label.place(x=10, y=30)  # Plaats het label iets lager
 
 # Start de camera en update het beeld in de GUI
 update_frame()
