@@ -123,8 +123,8 @@ button_canvas.pack(pady=(5, 0))  # Verhoog de positie met 15 pixels
 # Teken een cirkel op het canvas
 circle = button_canvas.create_oval(10, 10, 50, 50, fill="white", outline="")
 
-# Voeg het ASCII-symbool '[O°]' in het midden van de cirkel toe
-button_canvas.create_text(30, 30, text="[O°]", fill="black", font=("Helvetica", 16))
+# Voeg het ASCII-symbool '[O°]' in het midden van de cirkel toe met lettergrootte 10
+button_canvas.create_text(30, 30, text="[O°]", fill="black", font=("Helvetica", 10))
 
 # Voeg een klik-event toe aan de cirkel
 button_canvas.bind("<Button-1>", lambda event: take_photo())
