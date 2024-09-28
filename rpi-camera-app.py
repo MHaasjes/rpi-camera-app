@@ -26,7 +26,7 @@ def update_frame():
 
     # Schaal de afbeelding zodat het binnen het venster past zonder de beeldverhouding te verstoren
     frame_image = Image.fromarray(frame)
-    frame_image = frame_image.resize((window_width, window_height), Image.ANTIALIAS)
+    frame_image = frame_image.resize((window_width, window_height - button_height), Image.ANTIALIAS)
     frame_image_tk = ImageTk.PhotoImage(frame_image)
 
     camera_label.config(image=frame_image_tk)
@@ -60,12 +60,13 @@ picam2.start()
 
 # Camerabeeld label
 camera_label = tk.Label(root)
-camera_label.pack(expand=True)
+camera_label.pack(expand=True, fill=tk.BOTH)
 
-# Vierkante rode knop om een foto te maken, zonder tekst
+# Rode knop om een foto te maken, zonder tekst
 button_frame = tk.Frame(root)
-button_frame.pack(pady=20)
+button_frame.pack(pady=10, side=tk.BOTTOM)
 
+button_height = 100  # Schat een hoogte voor de knop om ruimte te reserveren
 take_photo_button = tk.Button(button_frame, command=take_photo, bg="red", width=10, height=5)  # Vierkant, zonder tekst
 take_photo_button.pack()
 
