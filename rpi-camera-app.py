@@ -73,11 +73,11 @@ root.geometry(f"{window_width}x{window_height}")
 # Initialiseer de camera
 picam2 = Picamera2()
 
-# Haal de maximale resolutie van de camera op
+# Haal de beschikbare sensor modi op en pak de eerste resolutie (voor eenvoud)
 camera_info = picam2.sensor_modes
-max_resolution = camera_info[0]['size']  # De maximale resolutie wordt opgehaald uit de beschikbare modi
+max_resolution = camera_info[0]['size']  # Gebruik de eerste resolutie
 
-# Configureer de camera voor maximale resolutie
+# Configureer de camera voor deze resolutie
 config = picam2.create_preview_configuration(main={"size": max_resolution})
 picam2.configure(config)
 picam2.start()
