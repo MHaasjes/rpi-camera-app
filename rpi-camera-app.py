@@ -34,19 +34,28 @@ root.title("Raspberry Pi Camera App")
 
 # Initialiseer de camera
 picam2 = Picamera2()
-config = picam2.create_preview_configuration(main={"size": (640, 480)})
+
+# Haal de maximale resolutie van de camera op
+camera_info = picam2.sensor_modes
+max_resolution = camera_info[0]['size']  # De maximale resolutie wordt opgehaald uit de beschikbare modi
+
+# Configureer de camera voor maximale resolutie
+config = picam2.create_preview_configuration(main={"size": max_resolution})
 picam2.configure(config)
 picam2.start()
+
+# Venstergrootte aanpassen voor een grotere preview
+root.geometry(f"{max_resolution[0]}x{max_resolution[1]+100}")  # 100 pixels extra voor de knopruimte
 
 # Camerabeeld label
 camera_label = tk.Label(root)
 camera_label.pack()
 
-# Rode knop om een foto te maken
+# Rode knop om een foto te maken zonder tekst en in een vierkant formaat
 button_frame = tk.Frame(root)
 button_frame.pack(pady=20)
 
-take_photo_button = tk.Button(button_frame, text="Neem Foto", command=take_photo, bg="red", fg="white", font=("Arial", 20), width=10, height=2)
+take_photo_button = tk.Button(button_frame, command=take_photo, bg="red", width=10, height=5)  # Vierkant, zonder tekst
 take_photo_button.pack()
 
 # Start de camera en update het beeld in de GUI
