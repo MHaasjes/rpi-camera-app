@@ -90,16 +90,18 @@ camera_label.pack(expand=True, fill=tk.BOTH)
 button_frame = tk.Frame(root, bg="black", height=60)
 button_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
-# Witte knop (cirkelvormig) in de zwarte balk om een foto te maken
-take_photo_button = tk.Button(button_frame, command=take_photo, bg="white", width=3, height=1)
-take_photo_button.pack(pady=10)  # Zorg dat de knop netjes in de zwarte balk wordt weergegeven
+# Maak een canvas voor de cirkelvormige knop
+button_canvas = tk.Canvas(button_frame, bg="black", width=60, height=60, highlightthickness=0)
+button_canvas.pack(pady=10)
 
-# Maak de knop cirkelvormig
-take_photo_button.configure(height=2)  # Verander de hoogte naar 2 voor cirkelvorm
-take_photo_button.bind('<Configure>', lambda e: take_photo_button.config(width=40, height=40))
+# Teken een cirkel op het canvas
+circle = button_canvas.create_oval(10, 10, 50, 50, fill="white", outline="")
+
+# Voeg een klik-event toe aan de cirkel
+button_canvas.bind("<Button-1>", lambda event: take_photo())
 
 # Label voor de cameraresolutie
-resolution_label = tk.Label(root, text=f"Resolutie: {max_resolution[0]}x{max_resolution[1]}", 
+resolution_label = tk.Label(root, text=f"Resolutie: {max_resolution[0]}x{max_resolution[1]}",
                              bg="black", fg="white", font=("Helvetica", 16))
 resolution_label.place(x=10, y=10)  # Plaats het label in de bovenhoek
 
