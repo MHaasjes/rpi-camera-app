@@ -34,12 +34,18 @@ root.title("Raspberry Pi Camera App")
 
 # Initialiseer de camera
 picam2 = Picamera2()
-config = picam2.create_preview_configuration(main={"size": (640, 480)})
+
+# Haal de maximale resolutie van de camera op
+camera_info = picam2.sensor_modes
+max_resolution = camera_info[0]['size']  # De maximale resolutie wordt opgehaald uit de beschikbare modi
+
+# Configureer de camera voor maximale resolutie
+config = picam2.create_preview_configuration(main={"size": max_resolution})
 picam2.configure(config)
 picam2.start()
 
-# Camerabeeld label
-camera_label = tk.Label(root)
+# Camerabeeld label met grotere preview (2x zo groot)
+camera_label = tk.Label(root, width=max_resolution[0]//2, height=max_resolution[1]//2)
 camera_label.pack()
 
 # Rode knop om een foto te maken
