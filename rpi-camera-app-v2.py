@@ -94,23 +94,20 @@ def update_frame():
     frame_ratio = frame_image.width / frame_image.height
     display_ratio = window_width / (window_height - 60)  # Verhouding zonder de zwarte balk
 
-    if frame_ratio > display_ratio:
-        # Afbeelding is breder dan het scherm, voeg zwarte balken boven en onder toe
+    if (window_width / frame_image.width) < (window_height / frame_image.height):
         new_width = window_width
-        new_height = int(window_width / frame_ratio)
+        new_height = int(new_width / frame_ratio)
     else:
-        # Afbeelding is hoger dan het scherm, voeg zwarte balken links en rechts toe
-        new_height = window_height - 60  # Rekening houden met de balk
+        new_height = window_height - 60
         new_width = int(new_height * frame_ratio)
 
     frame_image = frame_image.resize((new_width, new_height), Image.ANTIALIAS)
 
-    # Maak een zwarte achtergrond om de balken toe te voegen
     frame_image_with_borders = ImageOps.expand(frame_image, (
-        (window_width - new_width) // 2,  # Zwarte balk links
-        (window_height - 60 - new_height) // 2,  # Zwarte balk boven, zonder de onderste balk
-        (window_width - new_width) // 2,  # Zwarte balk rechts
-        (window_height - 60 - new_height) // 2  # Zwarte balk onder, zonder de onderste balk
+        (window_width - new_width) // 2,
+        (window_height - 60 - new_height) // 2,
+        (window_width - new_width) // 2,
+        (window_height - 60 - new_height) // 2
     ), fill='black')
 
     frame_image_tk = ImageTk.PhotoImage(frame_image_with_borders)
@@ -138,7 +135,7 @@ root.protocol("WM_DELETE_WINDOW", on_closing)
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 
-# Stel het venster in om bijna schermvullend te zijn (ruimte laten voor de taakbalk en menu's)
+# Stel het venster in om bijna schermvullend te zijn
 window_width = screen_width
 window_height = screen_height - 80  # Houd wat ruimte over voor de taakbalk of het menu
 root.geometry(f"{window_width}x{window_height}")
@@ -166,9 +163,13 @@ camera_label.pack(expand=True, fill=tk.BOTH)
 button_frame = tk.Frame(root, bg="black", height=60)
 button_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
-# Maak een canvas voor de cirkelvormige knop en centreer deze
-button_canvas = tk.Canvas(button_frame, bg="black", width=60, height=60, highlightthickness=0)
-button_canvas.pack(side=tk.TOP, pady=0, anchor='center')  # Zorg ervoor dat het canvas goed gecentreerd is
+# Frame om de witte cirkel en de videoknop samen te centreren
+button_container = tk.Frame(button_frame, bg="black")
+button_container.pack(anchor="center")  # Centreer dit frame in het zwarte vlak
+
+# Canvas voor de cirkelvormige knop en symbool
+button_canvas = tk.Canvas(button_container, bg="black", width=60, height=60, highlightthickness=0)
+button_canvas.grid(row=0, column=0)  # Plaats in grid
 
 # Teken een cirkel op het canvas
 circle = button_canvas.create_oval(10, 10, 50, 50, fill="white", outline="")
@@ -179,9 +180,9 @@ button_symbol = button_canvas.create_text(30, 30, text="[O°]", fill="black", fo
 # Voeg een klik-event toe aan de cirkel voor het maken van een foto
 button_canvas.bind("<Button-1>", lambda event: take_photo())
 
-# Plaats het symbool '▯◄' rechts van de cirkel (25 pixels naar rechts)
-video_label = tk.Label(button_frame, text="▯◄", font=("Helvetica", 10), bg="black", fg="white")
-video_label.pack(side=tk.RIGHT, padx=25, anchor='center')
+# Label voor het videomodus-symbool '▯◄', 25 pixels rechts van de cirkel
+video_label = tk.Label(button_container, text="▯◄", font=("Helvetica", 10), bg="black", fg="white")
+video_label.grid(row=0, column=1, padx=25)  # 25 pixels rechts van de witte knop
 video_label.bind("<Button-1>", lambda event: switch_icons())  # Klikbaar om de modus te wisselen
 
 # Resolutie-informatie weergeven in de rechterbovenhoek
