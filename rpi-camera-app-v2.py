@@ -52,7 +52,7 @@ def toggle_video_recording():
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             user = os.getenv("USER")
             save_path = f"/home/{user}/Videos/video_{timestamp}.h264"
-            picam2.start_recording(save_path)
+            picam2.start_recording(save_path)  # Het correcte bestandspad doorgeven aan start_recording
             recording = True
         else:
             # Stop video-opname en verander knop terug naar wit
@@ -183,9 +183,9 @@ button_canvas.bind("<Button-1>", lambda event: take_photo())
 # Label voor het videomodus-symbool '▯◄', 25 pixels rechts van de cirkel
 video_label = tk.Label(button_container, text="▯◄", font=("Helvetica", 10), bg="black", fg="white")
 video_label.grid(row=0, column=1, padx=25)  # 25 pixels rechts van de witte knop
-video_label.bind("<Button-1>", lambda event: switch_icons())  # Klikbaar om de modus te wisselen
+video_label.bind("<Button-1>", lambda event: switch_icons())  # Klikbaar maken
 
-# Resolutie-informatie weergeven in de rechterbovenhoek
+# Resolutielabels
 resolution_label = tk.Label(root, text=f"Resolutie (preview): {preview_resolution[0]}x{preview_resolution[1]}",
                              bg="black", fg="white", font=("Helvetica", 10))
 resolution_label.place(x=10, y=10)  # Plaats het label in de bovenhoek
