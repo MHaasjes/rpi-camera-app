@@ -7,14 +7,30 @@ from picamera2 import Picamera2
 from picamera2.encoders import H264Encoder
 import time
 
+# Initialiseer de camera
+picam2 = Picamera2()
+
+# Haal de beschikbare sensor modi op en pak de eerste resolutie voor preview
+camera_info = picam2.sensor_modes
+preview_resolution = camera_info[0]['size']  # Gebruik de eerste resolutie voor de preview
+max_resolution = max(camera_info, key=lambda mode: mode['size'][0] * mode['size'][1])['size']  # Vind de maximale resolutie
+
+# Configureer de camera voor de preview-resolutie
+config_preview = picam2.create_preview_configuration(main={"size": preview_resolution})
+picam2.configure(config_preview)
+
+# Configureer de camera voor de maximale resolutie (voor foto's)
+config_photo = picam2.create_still_configuration(main={"size": max_resolution})
+
+# Start de camera voor het eerst
+picam2.start()
+
 # Functie om foto te maken
 def take_photo():
     try:
-        # Stel de maximale resolutie in voor het maken van de foto
-        picam2.stop()  # Stop de preview om de configuratie te kunnen wijzigen
-        config_max = picam2.create_still_configuration(main={"size": max_resolution})  # Configureer voor maximale resolutie
-        picam2.configure(config_max)
-        picam2.start()
+        picam2.stop()  # Stop de preview
+        picam2.configure(config_photo)  # Configureer voor foto
+        picam2.start()  # Start de camera
 
         # Maak een foto met de camera
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -27,11 +43,10 @@ def take_photo():
         root.update()
         time.sleep(0.5)  # Wacht een halve seconde
         camera_label.config(bg="black")  # Zet achtergrond terug naar zwart
-        
-        # Herstart de camera preview
+
         picam2.stop()  # Stop de foto-configuratie
-        picam2.configure(config)  # Herconfigureer naar de oorspronkelijke preview-configuratie
-        picam2.start()
+        picam2.configure(config_preview)  # Herconfigureer naar de oorspronkelijke preview-configuratie
+        picam2.start()  # Start de preview opnieuw
 
     except Exception as e:
         messagebox.showerror("Fout", f"Kon geen foto maken: {e}")
@@ -41,34 +56,30 @@ def toggle_video_recording():
     global recording
     try:
         if not recording:
-            # Verander de knop naar rood
             button_canvas.itemconfig(circle, fill="red")
 
             picam2.stop()  # Stop de preview
             config_video = picam2.create_video_configuration()  # Configureer voor video-opname
             picam2.configure(config_video)
-            picam2.start()
+            picam2.start()  # Start de camera
 
             # Start video-opname
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             user = os.getenv("USER")
             save_path = f"/home/{user}/Videos/video_{timestamp}.h264"
 
-            # Stel de encoder in voor H264 video-opname
-            encoder = H264Encoder(bitrate=10000000)  # Stel de H264 encoder in met een geschikte bitrate
+            encoder = H264Encoder(bitrate=10000000)  # Stel de H264 encoder in
             picam2.start_recording(encoder, save_path)
 
             recording = True
         else:
-            # Stop video-opname en verander knop terug naar wit
             picam2.stop_recording()
             recording = False
             button_canvas.itemconfig(circle, fill="white")
 
-            # Herstart de preview na de video-opname
-            picam2.stop()
-            picam2.configure(config)  # Terug naar de oorspronkelijke preview-configuratie
-            picam2.start()
+            picam2.stop()  # Stop de video-opname
+            picam2.configure(config_preview)  # Terug naar de oorspronkelijke preview-configuratie
+            picam2.start()  # Start de preview opnieuw
 
     except Exception as e:
         messagebox.showerror("Fout", f"Kon geen video-opname starten: {e}")
@@ -145,22 +156,6 @@ window_width = screen_width
 window_height = screen_height - 80  # Houd wat ruimte over voor de taakbalk of het menu
 root.geometry(f"{window_width}x{window_height}")
 
-# Initialiseer de camera
-picam2 = Picamera2()
-
-# Haal de beschikbare sensor modi op en pak de eerste resolutie voor preview
-camera_info = picam2.sensor_modes
-preview_resolution = camera_info[0]['size']  # Gebruik de eerste resolutie voor de preview
-
-# Configureer de camera voor de preview-resolutie
-config = picam2.create_preview_configuration(main={"size": preview_resolution})
-picam2.configure(config)
-
-# Configureer de camera voor de maximale resolutie (voor foto's)
-max_resolution = max(camera_info, key=lambda mode: mode['size'][0] * mode['size'][1])['size']
-config_photo = picam2.create_still_configuration(main={"size": max_resolution})  # Configureer voor foto
-picam2.start()  # Start de camera
-
 # Camerabeeld label
 camera_label = tk.Label(root, bg="black")
 camera_label.pack(expand=True, fill=tk.BOTH)
@@ -193,16 +188,20 @@ video_label.bind("<Button-1>", lambda event: switch_icons())
 # Resolutielabels
 resolution_label = tk.Label(root, text=f"Resolutie (preview): {preview_resolution[0]}x{preview_resolution[1]}",
                              bg="black", fg="white", font=("Helvetica", 10))
-resolution_label.place(x=10, y=10)  # Plaats in de linker bovenhoek
+resolution_label.place(x=10, y=10)  # Plaats het label in de bovenhoek
+
+photo_resolution_label = tk.Label(root, text=f"Resolutie (foto): {max_resolution[0]}x{max_resolution[1]}",
+                                   bg="black", fg="white", font=("Helvetica", 10))
+photo_resolution_label.place(x=10, y=30)  # Plaats het label iets lager
+
+# Variabelen voor modus en opname-status
+current_mode = "photo"
+recording = False
 
 # Start de frame-updater
 update_frame()
 
-# Zet de huidige modus op 'photo' en de opname-status op False
-current_mode = "photo"
-recording = False
-
-# Start de GUI
+# Start de applicatie
 root.mainloop()
 
 # Stop de camera bij het afsluiten
