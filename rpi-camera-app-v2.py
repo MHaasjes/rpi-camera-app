@@ -40,6 +40,9 @@ def toggle_video_recording():
     global recording
     try:
         if not recording:
+            # Verander de knop naar rood
+            button_canvas.itemconfig(circle, fill="red")
+
             picam2.stop()  # Stop de preview
             config_video = picam2.create_video_configuration()  # Configureer voor video-opname
             picam2.configure(config_video)
@@ -52,9 +55,10 @@ def toggle_video_recording():
             picam2.start_recording(save_path)
             recording = True
         else:
-            # Stop video-opname
+            # Stop video-opname en verander knop terug naar wit
             picam2.stop_recording()
             recording = False
+            button_canvas.itemconfig(circle, fill="white")
 
             # Herstart de preview na de video-opname
             picam2.stop()
@@ -162,9 +166,9 @@ camera_label.pack(expand=True, fill=tk.BOTH)
 button_frame = tk.Frame(root, bg="black", height=60)
 button_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
-# Maak een canvas voor de cirkelvormige knop
+# Maak een canvas voor de cirkelvormige knop en centreer deze
 button_canvas = tk.Canvas(button_frame, bg="black", width=60, height=60, highlightthickness=0)
-button_canvas.pack(side=tk.LEFT, padx=(10, 0), anchor='w')  # Zorg ervoor dat het canvas goed gepositioneerd is
+button_canvas.pack(side=tk.TOP, pady=0, anchor='center')  # Zorg ervoor dat het canvas goed gecentreerd is
 
 # Teken een cirkel op het canvas
 circle = button_canvas.create_oval(10, 10, 50, 50, fill="white", outline="")
@@ -176,13 +180,11 @@ button_symbol = button_canvas.create_text(30, 30, text="[O°]", fill="black", fo
 button_canvas.bind("<Button-1>", lambda event: take_photo())
 
 # Plaats het symbool '▯◄' rechts van de cirkel (25 pixels naar rechts)
-video_label = tk.Label(button_frame, text="▯◄", bg="black", fg="white", font=("Helvetica", 10))
-video_label.pack(side=tk.LEFT, padx=(10, 10))  # Zorg ervoor dat er voldoende ruimte is voor zichtbaarheid
+video_label = tk.Label(button_frame, text="▯◄", font=("Helvetica", 10), bg="black", fg="white")
+video_label.pack(side=tk.RIGHT, padx=25, anchor='center')
+video_label.bind("<Button-1>", lambda event: switch_icons())  # Klikbaar om de modus te wisselen
 
-# Voeg een klik-event toe aan '▯◄' om de iconen te wisselen
-video_label.bind("<Button-1>", lambda event: switch_icons())
-
-# Labels voor de cameraresoluties
+# Resolutie-informatie weergeven in de rechterbovenhoek
 resolution_label = tk.Label(root, text=f"Resolutie (preview): {preview_resolution[0]}x{preview_resolution[1]}",
                              bg="black", fg="white", font=("Helvetica", 10))
 resolution_label.place(x=10, y=10)  # Plaats het label in de bovenhoek
