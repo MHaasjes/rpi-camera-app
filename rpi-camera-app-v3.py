@@ -75,6 +75,7 @@ def switch_icons():
 
 def update_frame():
     """Update het camerabeeld in de GUI."""
+    global window_width, window_height  # Maak window_width en window_height globaal
     frame = picam2.capture_array()
     frame_image = Image.fromarray(frame)
     
@@ -108,7 +109,8 @@ root.protocol("WM_DELETE_WINDOW", on_closing)
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 window_height = screen_height - 80
-root.geometry(f"{screen_width}x{window_height}")
+window_width = screen_width  # Definieer window_width hier
+root.geometry(f"{window_width}x{window_height}")
 
 # Initialiseer de camera
 picam2 = Picamera2()
