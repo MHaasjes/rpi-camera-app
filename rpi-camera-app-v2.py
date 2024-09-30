@@ -24,7 +24,6 @@ max_resolution = max(camera_info, key=lambda mode: mode['size'][0] * mode['size'
 # Functie om foto te maken
 def take_photo():
     try:
-        # Stop de preview om de configuratie te kunnen wijzigen
         picam2.stop()  
         config_max = picam2.create_still_configuration(main={"size": max_resolution})  # Configureer voor maximale resolutie
         picam2.configure(config_max)  # Configureer de camera
@@ -49,6 +48,28 @@ def take_photo():
 
     except Exception as e:
         messagebox.showerror("Fout", f"Kon geen foto maken: {e}")
+
+# Functie om video op te nemen
+is_recording = False  # Flag om op te slaan of er momenteel wordt opgenomen
+
+def toggle_video():
+    global is_recording
+    try:
+        if is_recording:
+            picam2.stop_recording()
+            is_recording = False
+            video_button.config(text="◄ Record")  # Wijzig de knoptekst
+            messagebox.showinfo("Video", "Opname gestopt.")
+        else:
+            timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            user = os.getenv("USER")  # Haal de ingelogde gebruiker op
+            save_path = f"/home/{user}/Videos/video_{timestamp}.h264"
+            picam2.start_recording(save_path)
+            is_recording = True
+            video_button.config(text="▯◄ Stop")  # Wijzig de knoptekst
+            messagebox.showinfo("Video", "Opname gestart.")
+    except Exception as e:
+        messagebox.showerror("Fout", f"Kon geen video opnemen: {e}")
 
 # Functie om het camerabeeld bij te werken in de GUI
 def update_frame():
@@ -112,22 +133,27 @@ root.geometry(f"{window_width}x{window_height}")
 camera_label = tk.Label(root, bg="black")
 camera_label.pack(expand=True, fill=tk.BOTH)
 
-# Zwarte balk onderaan voor de knop (60 pixels hoog)
+# Zwarte balk onderaan voor de knoppen (60 pixels hoog)
 button_frame = tk.Frame(root, bg="black", height=60)
 button_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
-# Maak een canvas voor de cirkelvormige knop
-button_canvas = tk.Canvas(button_frame, bg="black", width=60, height=60, highlightthickness=0)
-button_canvas.pack(pady=(5, 0))  # Verhoog de positie met 15 pixels
+# Maak een canvas voor de cirkelvormige foto knop
+photo_button_canvas = tk.Canvas(button_frame, bg="black", width=60, height=60, highlightthickness=0)
+photo_button_canvas.pack(side=tk.LEFT, padx=(10, 5))  # Voeg ruimte toe tussen de knoppen
 
-# Teken een cirkel op het canvas
-circle = button_canvas.create_oval(10, 10, 50, 50, fill="white", outline="")
+# Teken een cirkel op het canvas voor foto
+circle = photo_button_canvas.create_oval(10, 10, 50, 50, fill="white", outline="")
+photo_button_canvas.create_text(30, 30, text="[O°]", fill="black", font=("Helvetica", 10))
+photo_button_canvas.bind("<Button-1>", lambda event: take_photo())
 
-# Voeg het ASCII-symbool '[O°]' in het midden van de cirkel toe met lettergrootte 10
-button_canvas.create_text(30, 30, text="[O°]", fill="black", font=("Helvetica", 10))
+# Maak een canvas voor de videoknop
+video_button_canvas = tk.Canvas(button_frame, bg="black", width=60, height=60, highlightthickness=0)
+video_button_canvas.pack(side=tk.LEFT, padx=(5, 10))  # Voeg ruimte toe tussen de knoppen
 
-# Voeg een klik-event toe aan de cirkel
-button_canvas.bind("<Button-1>", lambda event: take_photo())
+# Teken de videoknop
+video_button_canvas.create_rectangle(10, 10, 50, 50, fill="red", outline="")
+video_button_canvas.create_text(30, 30, text="◄ Record", fill="black", font=("Helvetica", 10))
+video_button_canvas.bind("<Button-1>", lambda event: toggle_video())  # Koppel de functie aan de videoknop
 
 # Labels voor de cameraresoluties
 resolution_label = tk.Label(root, text=f"Resolutie (preview): {preview_resolution[0]}x{preview_resolution[1]}",
