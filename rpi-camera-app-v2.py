@@ -19,20 +19,15 @@ max_resolution = max(camera_info, key=lambda mode: mode['size'][0] * mode['size'
 config_preview = picam2.create_preview_configuration(main={"size": preview_resolution})
 picam2.configure(config_preview)
 
-# Configureer de camera voor de maximale resolutie (voor foto's)
-config_photo = picam2.create_still_configuration(main={"size": max_resolution})
-
 # Start de camera voor het eerst
 picam2.start()
-
-# Herconfigureer de camera direct naar de fotomodus
-picam2.configure(config_photo)
 
 # Functie om foto te maken
 def take_photo():
     try:
-        picam2.stop()  # Stop de preview
-        picam2.configure(config_photo)  # Configureer voor foto
+        picam2.stop()  # Stop de camera om opnieuw te configureren
+        config_photo = picam2.create_still_configuration(main={"size": max_resolution})  # Configureer voor foto
+        picam2.configure(config_photo)  # Herconfigureer de camera voor foto's
         picam2.start()  # Start de camera
 
         # Maak een foto met de camera
@@ -201,7 +196,7 @@ photo_resolution_label.place(x=10, y=30)  # Plaats het label iets lager
 current_mode = "photo"
 recording = False
 
-# Start de frame-updater
+# Start de camera en update het beeld in de GUI
 update_frame()
 
 # Start de applicatie
