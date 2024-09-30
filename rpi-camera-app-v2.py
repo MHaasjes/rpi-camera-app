@@ -3,7 +3,7 @@ from tkinter import messagebox
 from datetime import datetime
 import os
 from PIL import Image, ImageTk, ImageOps
-from picamera2 import Picamera2, FfmpegOutput
+from picamera2 import Picamera2
 from picamera2.encoders import H264Encoder
 import time
 
@@ -52,12 +52,11 @@ def toggle_video_recording():
             # Start video-opname
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             user = os.getenv("USER")
-            save_path = f"/home/{user}/Videos/video_{timestamp}.mp4"
+            save_path = f"/home/{user}/Videos/video_{timestamp}.h264"
 
-            # Stel de encoder en output in voor H264 video-opname met MP4-bestand
+            # Stel de encoder in voor H264 video-opname
             encoder = H264Encoder(bitrate=10000000)  # Stel de H264 encoder in met een geschikte bitrate
-            output = FfmpegOutput(save_path)  # Gebruik FfmpegOutput voor MP4-verpakking
-            picam2.start_recording(encoder, output)
+            picam2.start_recording(encoder, save_path)
 
             recording = True
         else:
@@ -180,13 +179,10 @@ button_canvas.grid(row=0, column=0)  # Plaats in grid
 # Teken een cirkel op het canvas
 circle = button_canvas.create_oval(10, 10, 50, 50, fill="white", outline="")
 
-# Voeg het ASCII-symbool '[O°]' in het midden van de cirkel toe met lettergrootte 10
-button_symbol = button_canvas.create_text(30, 30, text="[O°]", fill="black", font=("Helvetica", 10))
+# Voeg het ASCII-symbool '[O°]' in het midden van de cirkel toe
+button_symbol = button_canvas.create_text(30, 30, text="[O°]", font=("Helvetica", 10))
 
-# Voeg een klik-event toe aan de cirkel voor het maken van een foto
-button_canvas.bind("<Button-1>", lambda event: take_photo())
-
-# Label voor het videomodus-symbool '▯◄', 25 pixels rechts van de cirkel
+# Label voor het tweede symbool ▯◄
 video_label = tk.Label(button_container, text="▯◄", bg="black", fg="white", font=("Helvetica", 10))
 video_label.grid(row=0, column=1, padx=25)
 
