@@ -25,6 +25,9 @@ config_photo = picam2.create_still_configuration(main={"size": max_resolution})
 # Start de camera voor het eerst
 picam2.start()
 
+# Herconfigureer de camera direct naar de fotomodus
+picam2.configure(config_photo)
+
 # Functie om foto te maken
 def take_photo():
     try:
