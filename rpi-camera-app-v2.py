@@ -3,7 +3,8 @@ from tkinter import messagebox
 from datetime import datetime
 import os
 from PIL import Image, ImageTk, ImageOps
-from picamera2 import Picamera2
+from picamera2 import Picamera2, FfmpegOutput
+from picamera2.encoders import H264Encoder
 import time
 
 # Functie om foto te maken
@@ -51,8 +52,13 @@ def toggle_video_recording():
             # Start video-opname
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             user = os.getenv("USER")
-            save_path = f"/home/{user}/Videos/video_{timestamp}.h264"
-            picam2.start_recording(save_path)  # Het correcte bestandspad doorgeven aan start_recording
+            save_path = f"/home/{user}/Videos/video_{timestamp}.mp4"
+
+            # Stel de encoder en output in voor H264 video-opname met MP4-bestand
+            encoder = H264Encoder(bitrate=10000000)  # Stel de H264 encoder in met een geschikte bitrate
+            output = FfmpegOutput(save_path)  # Gebruik FfmpegOutput voor MP4-verpakking
+            picam2.start_recording(encoder, output)
+
             recording = True
         else:
             # Stop video-opname en verander knop terug naar wit
@@ -181,9 +187,11 @@ button_symbol = button_canvas.create_text(30, 30, text="[O°]", fill="black", fo
 button_canvas.bind("<Button-1>", lambda event: take_photo())
 
 # Label voor het videomodus-symbool '▯◄', 25 pixels rechts van de cirkel
-video_label = tk.Label(button_container, text="▯◄", font=("Helvetica", 10), bg="black", fg="white")
-video_label.grid(row=0, column=1, padx=25)  # 25 pixels rechts van de witte knop
-video_label.bind("<Button-1>", lambda event: switch_icons())  # Klikbaar maken
+video_label = tk.Label(button_container, text="▯◄", bg="black", fg="white", font=("Helvetica", 10))
+video_label.grid(row=0, column=1, padx=25)
+
+# Voeg een klik-event toe aan het label om de modus te wisselen
+video_label.bind("<Button-1>", lambda event: switch_icons())
 
 # Resolutielabels
 resolution_label = tk.Label(root, text=f"Resolutie (preview): {preview_resolution[0]}x{preview_resolution[1]}",
