@@ -4,30 +4,17 @@ from datetime import datetime
 import os
 from PIL import Image, ImageTk, ImageOps
 from picamera2 import Picamera2
+from picamera2.encoders import H264Encoder
 import time
-
-# Initialiseer de camera
-picam2 = Picamera2()
-
-# Haal de beschikbare sensor modi op en pak de eerste resolutie voor preview
-camera_info = picam2.sensor_modes
-preview_resolution = camera_info[0]['size']  # Gebruik de eerste resolutie voor de preview
-
-# Configureer de camera voor de preview-resolutie
-config = picam2.create_preview_configuration(main={"size": preview_resolution})
-picam2.configure(config)
-picam2.start()
-
-# Haal de maximale resolutie voor het maken van foto's
-max_resolution = max(camera_info, key=lambda mode: mode['size'][0] * mode['size'][1])['size']  # Vind de maximale resolutie
 
 # Functie om foto te maken
 def take_photo():
     try:
-        picam2.stop()  
+        # Stel de maximale resolutie in voor het maken van de foto
+        picam2.stop()  # Stop de preview om de configuratie te kunnen wijzigen
         config_max = picam2.create_still_configuration(main={"size": max_resolution})  # Configureer voor maximale resolutie
-        picam2.configure(config_max)  # Configureer de camera
-        picam2.start()  # Start de camera voor het maken van een foto
+        picam2.configure(config_max)
+        picam2.start()
 
         # Maak een foto met de camera
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -44,32 +31,64 @@ def take_photo():
         # Herstart de camera preview
         picam2.stop()  # Stop de foto-configuratie
         picam2.configure(config)  # Herconfigureer naar de oorspronkelijke preview-configuratie
-        picam2.start()  # Start de camera voor preview
+        picam2.start()
 
     except Exception as e:
         messagebox.showerror("Fout", f"Kon geen foto maken: {e}")
 
-# Functie om video op te nemen
-is_recording = False  # Flag om op te slaan of er momenteel wordt opgenomen
-
-def toggle_video():
-    global is_recording
+# Functie om video-opname te starten of te stoppen
+def toggle_video_recording():
+    global recording
     try:
-        if is_recording:
-            picam2.stop_recording()
-            is_recording = False
-            video_button.config(text="◄ Record")  # Wijzig de knoptekst
-            messagebox.showinfo("Video", "Opname gestopt.")
-        else:
+        if not recording:
+            # Verander de knop naar rood
+            button_canvas.itemconfig(circle, fill="red")
+
+            picam2.stop()  # Stop de preview
+            config_video = picam2.create_video_configuration()  # Configureer voor video-opname
+            picam2.configure(config_video)
+            picam2.start()
+
+            # Start video-opname
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-            user = os.getenv("USER")  # Haal de ingelogde gebruiker op
+            user = os.getenv("USER")
             save_path = f"/home/{user}/Videos/video_{timestamp}.h264"
-            picam2.start_recording(save_path)
-            is_recording = True
-            video_button.config(text="▯◄ Stop")  # Wijzig de knoptekst
-            messagebox.showinfo("Video", "Opname gestart.")
+
+            # Stel de encoder in voor H264 video-opname
+            encoder = H264Encoder(bitrate=10000000)  # Stel de H264 encoder in met een geschikte bitrate
+            picam2.start_recording(encoder, save_path)
+
+            recording = True
+        else:
+            # Stop video-opname en verander knop terug naar wit
+            picam2.stop_recording()
+            recording = False
+            button_canvas.itemconfig(circle, fill="white")
+
+            # Herstart de preview na de video-opname
+            picam2.stop()
+            picam2.configure(config)  # Terug naar de oorspronkelijke preview-configuratie
+            picam2.start()
+
     except Exception as e:
-        messagebox.showerror("Fout", f"Kon geen video opnemen: {e}")
+        messagebox.showerror("Fout", f"Kon geen video-opname starten: {e}")
+
+# Functie om iconen te wisselen en bijbehorende acties
+def switch_icons():
+    global current_mode
+
+    if current_mode == "photo":
+        # Wissel naar videomodus
+        button_canvas.itemconfig(button_symbol, text="▯◄", font=("Helvetica", 10))  # Zet ▯◄ in de cirkel
+        video_label.config(text="[O°]", font=("Helvetica", 10), fg="white")  # Zet [O°] rechts van de cirkel
+        current_mode = "video"
+        button_canvas.bind("<Button-1>", lambda event: toggle_video_recording())  # Bind video-opname functie
+    else:
+        # Wissel naar fotomodus
+        button_canvas.itemconfig(button_symbol, text="[O°]", font=("Helvetica", 10))  # Zet [O°] in de cirkel
+        video_label.config(text="▯◄", font=("Helvetica", 10), fg="white")  # Zet ▯◄ rechts van de cirkel
+        current_mode = "photo"
+        button_canvas.bind("<Button-1>", lambda event: take_photo())  # Bind foto-opname functie
 
 # Functie om het camerabeeld bij te werken in de GUI
 def update_frame():
@@ -80,23 +99,20 @@ def update_frame():
     frame_ratio = frame_image.width / frame_image.height
     display_ratio = window_width / (window_height - 60)  # Verhouding zonder de zwarte balk
 
-    if frame_ratio > display_ratio:
-        # Afbeelding is breder dan het scherm, voeg zwarte balken boven en onder toe
+    if (window_width / frame_image.width) < (window_height / frame_image.height):
         new_width = window_width
-        new_height = int(window_width / frame_ratio)
+        new_height = int(new_width / frame_ratio)
     else:
-        # Afbeelding is hoger dan het scherm, voeg zwarte balken links en rechts toe
-        new_height = window_height - 60  # Rekening houden met de balk
+        new_height = window_height - 60
         new_width = int(new_height * frame_ratio)
 
     frame_image = frame_image.resize((new_width, new_height), Image.ANTIALIAS)
 
-    # Maak een zwarte achtergrond om de balken toe te voegen
     frame_image_with_borders = ImageOps.expand(frame_image, (
-        (window_width - new_width) // 2,  # Zwarte balk links
-        (window_height - 60 - new_height) // 2,  # Zwarte balk boven, zonder de onderste balk
-        (window_width - new_width) // 2,  # Zwarte balk rechts
-        (window_height - 60 - new_height) // 2  # Zwarte balk onder, zonder de onderste balk
+        (window_width - new_width) // 2,
+        (window_height - 60 - new_height) // 2,
+        (window_width - new_width) // 2,
+        (window_height - 60 - new_height) // 2
     ), fill='black')
 
     frame_image_tk = ImageTk.PhotoImage(frame_image_with_borders)
@@ -124,50 +140,69 @@ root.protocol("WM_DELETE_WINDOW", on_closing)
 screen_width = root.winfo_screenwidth()
 screen_height = root.winfo_screenheight()
 
-# Stel het venster in om bijna schermvullend te zijn (ruimte laten voor de taakbalk en menu's)
+# Stel het venster in om bijna schermvullend te zijn
 window_width = screen_width
 window_height = screen_height - 80  # Houd wat ruimte over voor de taakbalk of het menu
 root.geometry(f"{window_width}x{window_height}")
+
+# Initialiseer de camera
+picam2 = Picamera2()
+
+# Haal de beschikbare sensor modi op en pak de eerste resolutie voor preview
+camera_info = picam2.sensor_modes
+preview_resolution = camera_info[0]['size']  # Gebruik de eerste resolutie voor de preview
+
+# Configureer de camera voor de preview-resolutie
+config = picam2.create_preview_configuration(main={"size": preview_resolution})
+picam2.configure(config)
+
+# Configureer de camera voor de maximale resolutie (voor foto's)
+max_resolution = max(camera_info, key=lambda mode: mode['size'][0] * mode['size'][1])['size']
+config_photo = picam2.create_still_configuration(main={"size": max_resolution})  # Configureer voor foto
+picam2.start()  # Start de camera
 
 # Camerabeeld label
 camera_label = tk.Label(root, bg="black")
 camera_label.pack(expand=True, fill=tk.BOTH)
 
-# Zwarte balk onderaan voor de knoppen (60 pixels hoog)
+# Zwarte balk onderaan voor de knop (60 pixels hoog)
 button_frame = tk.Frame(root, bg="black", height=60)
 button_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
-# Maak een canvas voor de cirkelvormige foto knop
-photo_button_canvas = tk.Canvas(button_frame, bg="black", width=60, height=60, highlightthickness=0)
-photo_button_canvas.pack(side=tk.LEFT, padx=(10, 5))  # Voeg ruimte toe tussen de knoppen
+# Frame om de witte cirkel en de videoknop samen te centreren
+button_container = tk.Frame(button_frame, bg="black")
+button_container.pack(anchor="center")  # Centreer dit frame in het zwarte vlak
 
-# Teken een cirkel op het canvas voor foto
-circle = photo_button_canvas.create_oval(10, 10, 50, 50, fill="white", outline="")
-photo_button_canvas.create_text(30, 30, text="[O°]", fill="black", font=("Helvetica", 10))
-photo_button_canvas.bind("<Button-1>", lambda event: take_photo())
+# Canvas voor de cirkelvormige knop en symbool
+button_canvas = tk.Canvas(button_container, bg="black", width=60, height=60, highlightthickness=0)
+button_canvas.grid(row=0, column=0)  # Plaats in grid
 
-# Maak een canvas voor de videoknop
-video_button_canvas = tk.Canvas(button_frame, bg="black", width=60, height=60, highlightthickness=0)
-video_button_canvas.pack(side=tk.LEFT, padx=(5, 10))  # Voeg ruimte toe tussen de knoppen
+# Teken een cirkel op het canvas
+circle = button_canvas.create_oval(10, 10, 50, 50, fill="white", outline="")
 
-# Teken de videoknop
-video_button_canvas.create_rectangle(10, 10, 50, 50, fill="red", outline="")
-video_button_canvas.create_text(30, 30, text="◄ Record", fill="black", font=("Helvetica", 10))
-video_button_canvas.bind("<Button-1>", lambda event: toggle_video())  # Koppel de functie aan de videoknop
+# Voeg het ASCII-symbool '[O°]' in het midden van de cirkel toe
+button_symbol = button_canvas.create_text(30, 30, text="[O°]", font=("Helvetica", 10))
 
-# Labels voor de cameraresoluties
+# Label voor het tweede symbool ▯◄
+video_label = tk.Label(button_container, text="▯◄", bg="black", fg="white", font=("Helvetica", 10))
+video_label.grid(row=0, column=1, padx=25)
+
+# Voeg een klik-event toe aan het label om de modus te wisselen
+video_label.bind("<Button-1>", lambda event: switch_icons())
+
+# Resolutielabels
 resolution_label = tk.Label(root, text=f"Resolutie (preview): {preview_resolution[0]}x{preview_resolution[1]}",
                              bg="black", fg="white", font=("Helvetica", 10))
-resolution_label.place(x=10, y=10)  # Plaats het label in de bovenhoek
+resolution_label.place(x=10, y=10)  # Plaats in de linker bovenhoek
 
-photo_resolution_label = tk.Label(root, text=f"Resolutie (foto): {max_resolution[0]}x{max_resolution[1]}",
-                                   bg="black", fg="white", font=("Helvetica", 10))
-photo_resolution_label.place(x=10, y=30)  # Plaats het label iets lager
-
-# Start de camera en update het beeld in de GUI
+# Start de frame-updater
 update_frame()
 
-# Start de applicatie
+# Zet de huidige modus op 'photo' en de opname-status op False
+current_mode = "photo"
+recording = False
+
+# Start de GUI
 root.mainloop()
 
 # Stop de camera bij het afsluiten
