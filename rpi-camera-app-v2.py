@@ -155,10 +155,11 @@ preview_resolution = camera_info[0]['size']  # Gebruik de eerste resolutie voor 
 # Configureer de camera voor de preview-resolutie
 config = picam2.create_preview_configuration(main={"size": preview_resolution})
 picam2.configure(config)
-picam2.start()
 
-# Haal de maximale resolutie voor het maken van foto's
-max_resolution = max(camera_info, key=lambda mode: mode['size'][0] * mode['size'][1])['size']  # Vind de maximale resolutie
+# Configureer de camera voor de maximale resolutie (voor foto's)
+max_resolution = max(camera_info, key=lambda mode: mode['size'][0] * mode['size'][1])['size']
+config_photo = picam2.create_still_configuration(main={"size": max_resolution})  # Configureer voor foto
+picam2.start()  # Start de camera
 
 # Camerabeeld label
 camera_label = tk.Label(root, bg="black")
@@ -192,18 +193,17 @@ video_label.bind("<Button-1>", lambda event: switch_icons())
 # Resolutielabels
 resolution_label = tk.Label(root, text=f"Resolutie (preview): {preview_resolution[0]}x{preview_resolution[1]}",
                              bg="black", fg="white", font=("Helvetica", 10))
-resolution_label.place(x=10, y=10)  # Plaats het label in de bovenhoek
+resolution_label.place(x=10, y=10)  # Plaats in de linker bovenhoek
 
-photo_resolution_label = tk.Label(root, text=f"Resolutie (foto): {max_resolution[0]}x{max_resolution[1]}",
-                                   bg="black", fg="white", font=("Helvetica", 10))
-photo_resolution_label.place(x=10, y=30)  # Plaats het label iets lager
+# Start de frame-updater
+update_frame()
 
-# Variabelen voor modus en opname-status
+# Zet de huidige modus op 'photo' en de opname-status op False
 current_mode = "photo"
 recording = False
 
-# Start de camera en update het beeld in de GUI
-update_frame()
-
-# Start de applicatie
+# Start de GUI
 root.mainloop()
+
+# Stop de camera bij het afsluiten
+picam2.stop()
