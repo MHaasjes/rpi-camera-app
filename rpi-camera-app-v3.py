@@ -44,7 +44,7 @@ def toggle_video_recording():
     global recording
     try:
         if not recording:
-            button_canvas.itemconfig(circle, fill="red")
+            button_video.config(bg="red")  # Verander de achtergrond naar rood
             configure_camera(mode="video")  # Configureer voor video-opname
             timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
             save_path = f"/home/{os.getenv('USER')}/Videos/video_{timestamp}.h264"
@@ -54,28 +54,13 @@ def toggle_video_recording():
         else:
             picam2.stop_recording()
             recording = False
-            button_canvas.itemconfig(circle, fill="white")
+            button_video.config(bg="white")  # Terug naar standaard kleur
             configure_camera(mode="preview")  # Terug naar preview
     except Exception as e:
         messagebox.showerror("Fout", f"Kon geen video-opname starten: {e}")
 
-def switch_icons():
-    """Wissel tussen foto- en videomodus."""
-    global current_mode
-    if current_mode == "photo":
-        current_mode = "video"
-        button_canvas.itemconfig(button_symbol, text="▯◄")
-        video_label.config(text="[O°]")
-        button_canvas.bind("<Button-1>", lambda event: toggle_video_recording())
-    else:
-        current_mode = "photo"
-        button_canvas.itemconfig(button_symbol, text="[O°]")
-        video_label.config(text="▯◄")
-        button_canvas.bind("<Button-1>", lambda event: take_photo())
-
 def update_frame():
     """Update het camerabeeld in de GUI."""
-    global window_width, window_height  # Maak window_width en window_height globaal
     frame = picam2.capture_array()
     frame_image = Image.fromarray(frame)
     
@@ -128,31 +113,23 @@ camera_label.pack(expand=True, fill=tk.BOTH)
 button_frame = tk.Frame(root, bg="black", height=60)
 button_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
-# Canvas voor de cirkelvormige knop
-button_canvas = tk.Canvas(button_frame, bg="black", width=60, height=60, highlightthickness=0)
-button_canvas.pack(side=tk.LEFT, padx=(screen_width // 2 - 30, 0))  # Centreer de knop
+# Foto knop links
+button_photo = tk.Button(button_frame, text="Neem Foto", command=take_photo, bg="white")
+button_photo.pack(side=tk.LEFT, padx=(50, 20))  # Voeg wat ruimte toe
 
-# Teken een cirkel op het canvas
-circle = button_canvas.create_oval(10, 10, 50, 50, fill="white")
-
-# Voeg het ASCII-symbool '[O°]' in het midden van de cirkel toe
-button_symbol = button_canvas.create_text(30, 30, text="[O°]", font=("Helvetica", 10))
-
-# Label voor het tweede symbool ▯◄
-video_label = tk.Label(button_frame, text="▯◄", bg="black", fg="white", font=("Helvetica", 10))
-video_label.pack(side=tk.LEFT, padx=25)
-video_label.bind("<Button-1>", lambda event: switch_icons())
+# Video knop rechts
+button_video = tk.Button(button_frame, text="Video Opnemen", command=toggle_video_recording, bg="white")
+button_video.pack(side=tk.RIGHT, padx=(20, 50))  # Voeg wat ruimte toe
 
 # Resolutielabel
-resolution_label = tk.Label(root, text=f"Resolutie (preview): {preview_resolution[0]}x{preview_resolution[1]}", 
+resolution_label = tk.Label(root, text=f"Resolutie (preview): {preview_resolution[0]}x{preview_resolution[1]}",
                              bg="black", fg="white", font=("Helvetica", 10))
 resolution_label.place(x=10, y=10)
 
 # Start de frame-updater
 update_frame()
 
-# Zet de huidige modus op 'photo' en de opname-status op False
-current_mode = "photo"
+# Zet de huidige opname-status op False
 recording = False
 
 # Start de GUI
